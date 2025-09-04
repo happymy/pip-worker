@@ -7,7 +7,7 @@
 pip-worker 是一个用于展示和选择代理 IP 地址的无服务器应用。它从远程 JSON 数据源获取代理 IP 列表，并以友好的界面展示给用户，允许用户选择并复制 IP 地址。
 
 主要功能：
-- 从远程数据源获取代理 IP 列表（https://raw.githubusercontent.com/happymy/Pip_Json_DEMO2/refs/heads/main/output.json）
+- 从远程数据源获取代理 IP 列表  https://raw.githubusercontent.com/happymy/Pip_Json_DEMO2/refs/heads/main/output.json
 - 按国家/地区对 IP 进行分组显示
 - 可展开/折叠的国家分组视图
 - 一键复制选中 IP 到剪贴板
