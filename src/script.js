@@ -164,7 +164,9 @@ const ipList = document.getElementById('ipList');
 const selectedIpDiv = document.getElementById('selectedIp');
 const notificationDiv = document.getElementById('notification');
 const loadingDiv = document.getElementById('loading');
+const filterInput = document.getElementById('filterInput');
 let selectedIp = '';
+let ipData = []; // 保存原始数据用于过滤
 
 // 显示通知
 function showNotification(message, isError = false) {
@@ -182,6 +184,86 @@ function showNotification(message, isError = false) {
     }, 3000);
 }
 
+// 过滤IP列表
+function filterIpList() {
+    const filterValue = filterInput.value.toLowerCase();
+    
+    // 按国家分组
+    const groupedData = {};
+    ipData.forEach(item => {
+        // 提取 IP 地址
+        const ip = (item.ip || item.IP || item.address || item.Address || '未知IP');
+        
+        // 提取国家/位置信息
+        const country = (item.country || item.Country || item.location || item.Location || '未知国家');
+        
+        // 如果过滤条件为空，或IP地址包含过滤条件，或国家包含过滤条件
+        if (!filterValue || ip.toLowerCase().includes(filterValue) || country.toLowerCase().includes(filterValue)) {
+            if (!groupedData[country]) {
+                groupedData[country] = [];
+            }
+            groupedData[country].push({
+                ip: ip,
+                country: country
+            });
+        }
+    });
+    
+    // 清空现有列表
+    ipList.innerHTML = '';
+    
+    // 如果没有匹配的数据，显示提示信息
+    if (Object.keys(groupedData).length === 0) {
+        ipList.innerHTML = '<div class="no-results">没有找到匹配的IP地址</div>';
+        return;
+    }
+    
+    // 创建国家分组
+    Object.keys(groupedData).sort().forEach(country => {
+        const countryGroup = document.createElement('div');
+        countryGroup.className = 'country-group';
+        
+        const countryHeader = document.createElement('div');
+        countryHeader.className = 'country-header';
+        countryHeader.textContent = country + ' (' + groupedData[country].length + ')';
+        
+        const countryIps = document.createElement('div');
+        countryIps.className = 'country-ips';
+        
+        groupedData[country].forEach(item => {
+            const ipOption = document.createElement('div');
+            ipOption.className = 'ip-option';
+            ipOption.textContent = item.ip;
+            ipOption.addEventListener('click', () => {
+                selectedIp = item.ip;
+                selectedIpDiv.textContent = selectedIp;
+                showNotification('已选择 IP: ' + selectedIp);
+                
+                // 更新所有选项的样式
+                document.querySelectorAll('.ip-option').forEach(option => {
+                    option.style.backgroundColor = '';
+                    option.style.color = '';
+                    option.style.fontWeight = '';
+                });
+                
+                // 高亮选中的选项
+                ipOption.style.backgroundColor = '#4CAF50';
+                ipOption.style.color = 'white';
+                ipOption.style.fontWeight = 'bold';
+            });
+            countryIps.appendChild(ipOption);
+        });
+        
+        countryHeader.addEventListener('click', () => {
+            countryGroup.classList.toggle('country-expanded');
+        });
+        
+        countryGroup.appendChild(countryHeader);
+        countryGroup.appendChild(countryIps);
+        ipList.appendChild(countryGroup);
+    });
+}
+
 // 加载 IP 数据
 async function loadIpData() {
     try {
@@ -196,71 +278,11 @@ async function loadIpData() {
             throw new Error(data.error);
         }
         
-        // 按国家分组
-        const groupedData = {};
-        data.forEach(item => {
-            // 提取 IP 地址
-            const ip = (item.ip || item.IP || item.address || item.Address || '未知IP');
-            
-            // 提取国家/位置信息
-            const country = (item.country || item.Country || item.location || item.Location || '未知国家');
-            
-            if (!groupedData[country]) {
-                groupedData[country] = [];
-            }
-            groupedData[country].push({
-                ip: ip,
-                country: country
-            });
-        });
+        // 保存原始数据
+        ipData = data;
         
-        // 清空现有列表
-        ipList.innerHTML = '';
-        
-        // 创建国家分组
-        Object.keys(groupedData).sort().forEach(country => {
-            const countryGroup = document.createElement('div');
-            countryGroup.className = 'country-group';
-            
-            const countryHeader = document.createElement('div');
-            countryHeader.className = 'country-header';
-            countryHeader.textContent = country + ' (' + groupedData[country].length + ')';
-            
-            const countryIps = document.createElement('div');
-            countryIps.className = 'country-ips';
-            
-            groupedData[country].forEach(item => {
-                const ipOption = document.createElement('div');
-                ipOption.className = 'ip-option';
-                ipOption.textContent = item.ip;
-                ipOption.addEventListener('click', () => {
-                    selectedIp = item.ip;
-                    selectedIpDiv.textContent = selectedIp;
-                    showNotification('已选择 IP: ' + selectedIp);
-                    
-                    // 更新所有选项的样式
-                    document.querySelectorAll('.ip-option').forEach(option => {
-                        option.style.backgroundColor = '';
-                        option.style.color = '';
-                        option.style.fontWeight = '';
-                    });
-                    
-                    // 高亮选中的选项
-                    ipOption.style.backgroundColor = '#4CAF50';
-                    ipOption.style.color = 'white';
-                    ipOption.style.fontWeight = 'bold';
-                });
-                countryIps.appendChild(ipOption);
-            });
-            
-            countryHeader.addEventListener('click', () => {
-                countryGroup.classList.toggle('country-expanded');
-            });
-            
-            countryGroup.appendChild(countryHeader);
-            countryGroup.appendChild(countryIps);
-            ipList.appendChild(countryGroup);
-        });
+        // 显示过滤后的数据
+        filterIpList();
         
         loadingDiv.style.display = 'none';
         refreshBtn.disabled = false;
@@ -294,6 +316,7 @@ async function copyToClipboard() {
 // 事件监听器
 refreshBtn.addEventListener('click', loadIpData);
 copyBtn.addEventListener('click', copyToClipboard);
+filterInput.addEventListener('input', filterIpList);
 
 // 页面加载完成后初始化数据
 document.addEventListener('DOMContentLoaded', loadIpData);
