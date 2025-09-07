@@ -101,7 +101,9 @@ export default {
             --selected-ip-bg: #3a3a3a;
             --country-header-bg: #3d3d3d;
             --ip-border: #444;
-            
+        }
+
+        [data-theme="dark"] body {
             background-color: var(--bg-color);
             color: var(--text-color);
         }
