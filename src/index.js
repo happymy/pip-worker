@@ -78,11 +78,107 @@ export default {
             padding: 20px;
             background-color: #f5f5f5;
         }
+        
+        /* 暗色主题样式 */
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --border-color: #444;
+            --header-bg: #3d3d3d;
+            --input-bg: #333;
+            --input-border: #555;
+            --button-bg: #4CAF50;
+            --button-hover: #45a049;
+            --button-disabled: #555;
+            --notification-bg: #2d442d;
+            --notification-border: #3c763d;
+            --notification-text: #a9d9aa;
+            --error-bg: #442d2d;
+            --error-border: #763c3c;
+            --error-text: #f2a8a8;
+            --ip-option-hover: #3a3a3a;
+            --selected-ip-bg: #3a3a3a;
+            --country-header-bg: #3d3d3d;
+            --ip-border: #444;
+            
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .container {
+            background-color: var(--container-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] h1 {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .filter-input {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="%23ccc" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>');
+        }
+
+        [data-theme="dark"] .filter-input:focus {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        [data-theme="dark"] select {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .ip-display {
+            background-color: var(--selected-ip-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .ip-list-container {
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .no-results {
+            color: #aaa;
+        }
+
+        [data-theme="dark"] .country-header {
+            background-color: var(--country-header-bg);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .ip-option {
+            color: var(--text-color);
+            border-bottom-color: var(--ip-border);
+        }
+
+        [data-theme="dark"] .ip-option:hover {
+            background-color: var(--ip-option-hover);
+        }
+
+        [data-theme="dark"] .notification {
+            background-color: var(--notification-bg);
+            border-color: var(--notification-border);
+            color: var(--notification-text);
+        }
+
+        [data-theme="dark"] .error {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: var(--error-text);
+        }
+        
         .container {
             background-color: white;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative; /* 为按钮定位 */
         }
         h1 {
             color: #333;
@@ -115,6 +211,30 @@ export default {
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        
+        /* 主题切换按钮样式 */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: 1px solid #ddd;
+            font-size: 18px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            padding: 0;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            border-color: #555;
+            color: #fff;
+        }
+        
         .filter-container {
             margin-bottom: 20px;
         }
@@ -221,6 +341,9 @@ export default {
     <div class="container">
         <h1>Proxy IP 选择器</h1>
         
+        <!-- 添加主题切换按钮 -->
+        <button id="themeToggle" class="theme-toggle" aria-label="切换暗黑模式">🌙</button>
+        
         <div class="controls">
             <button id="refreshBtn">刷新数据</button>
             <button id="copyBtn">复制到剪贴板</button>
@@ -249,8 +372,36 @@ export default {
         const notificationDiv = document.getElementById('notification');
         const loadingDiv = document.getElementById('loading');
         const filterInput = document.getElementById('filterInput');
+        const themeToggle = document.getElementById('themeToggle'); // 主题切换按钮
         let selectedIp = '';
         let ipData = []; // 保存原始数据用于过滤
+
+        // 主题切换功能
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '☀️';
+            } else {
+                // 默认为亮色主题
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeToggle.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        }
 
         // 地理位置排序顺序
         const geoOrder = ['Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Africa', 'Unknown'];
@@ -438,9 +589,13 @@ export default {
         refreshBtn.addEventListener('click', loadIpData);
         copyBtn.addEventListener('click', copyToClipboard);
         filterInput.addEventListener('input', filterIpList);
+        themeToggle.addEventListener('click', toggleTheme); // 添加主题切换事件监听器
 
-        // 页面加载完成后初始化数据
-        document.addEventListener('DOMContentLoaded', loadIpData);
+        // 页面加载完成后初始化数据和主题
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme(); // 初始化主题
+            loadIpData(); // 加载数据
+        });
     </script>
 </body>
 </html>`;

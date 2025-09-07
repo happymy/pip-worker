@@ -6,8 +6,36 @@ const selectedIpDiv = document.getElementById('selectedIp');
 const notificationDiv = document.getElementById('notification');
 const loadingDiv = document.getElementById('loading');
 const filterInput = document.getElementById('filterInput');
+const themeToggle = document.getElementById('themeToggle'); // 主题切换按钮
 let selectedIp = '';
 let ipData = []; // 保存原始数据用于过滤
+
+// 主题切换功能
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.textContent = '☀️';
+    } else {
+        // 默认为亮色主题
+        document.documentElement.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙';
+    }
+}
+
+// 切换主题
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeToggle.textContent = '🌙';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeToggle.textContent = '☀️';
+    }
+}
 
 // 显示通知
 function showNotification(message, isError = false) {
@@ -158,6 +186,10 @@ async function copyToClipboard() {
 refreshBtn.addEventListener('click', loadIpData);
 copyBtn.addEventListener('click', copyToClipboard);
 filterInput.addEventListener('input', filterIpList);
+themeToggle.addEventListener('click', toggleTheme); // 添加主题切换事件监听器
 
-// 页面加载完成后初始化数据
-document.addEventListener('DOMContentLoaded', loadIpData);
+// 页面加载完成后初始化数据和主题
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme(); // 初始化主题
+    loadIpData(); // 加载数据
+});
