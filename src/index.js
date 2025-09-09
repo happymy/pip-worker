@@ -58,7 +58,7 @@ export default {
 		}
 		
 		// 如果没有 ASSETS 绑定（如在测试环境中），返回一个简单的 HTML 响应
-		return new Response("测试环境中静态资源不可用", {
+		return new Response('测试环境中静态资源不可用', {
 			status: 200,
 			headers: { 'Content-Type': 'text/html' }
 		});
