@@ -9,6 +9,8 @@ const filterInput = document.getElementById('filterInput');
 const themeToggle = document.getElementById('themeToggle'); // 主题切换按钮
 let selectedIp = '';
 let ipData = []; // 保存原始数据用于过滤
+let countdownInterval = null; // 用于存储倒计时计时器ID
+let hideTimeout = null; // 用于存储隐藏通知的计时器ID
 
 // 主题切换功能
 function initTheme() {
@@ -39,7 +41,20 @@ function toggleTheme() {
 
 // 显示通知
 function showNotification(message, isError = false) {
-    notificationDiv.textContent = message;
+    // 清除之前可能存在的计时器
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+    }
+    
+    let countdown = 10; // 初始倒计时10秒
+    
+    // 设置通知内容，包括倒计时
+    notificationDiv.innerHTML = `${message} <span id="countdown">(${countdown}秒后隐藏本通知)</span>`;
     notificationDiv.style.display = 'block';
     if (isError) {
         notificationDiv.classList.add('error');
@@ -47,10 +62,30 @@ function showNotification(message, isError = false) {
         notificationDiv.classList.remove('error');
     }
     
-    // 3秒后自动隐藏通知
-    setTimeout(() => {
+    // 每秒更新倒计时
+    countdownInterval = setInterval(() => {
+        countdown--;
+        const countdownElement = document.getElementById('countdown');
+        if (countdownElement) {
+            countdownElement.textContent = `(${countdown}秒后隐藏本通知)`;
+        }
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            // 不再在这里隐藏通知，由setTimeout统一处理
+        }
+    }, 1000);
+    
+    // 10秒后自动隐藏通知
+    hideTimeout = setTimeout(() => {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
         notificationDiv.style.display = 'none';
-    }, 3000);
+        hideTimeout = null;
+    }, 10000);
 }
 
 // 过滤IP列表
